@@ -7,7 +7,6 @@ import useScreenSize from "../../hooks/useScreenSize";
 
 const PrivateLayout = () => {
     useAuth(); // Check token validity
-
     const token = useSelector((state: any) => state.auth.token);
     const isMobile = useScreenSize();
 

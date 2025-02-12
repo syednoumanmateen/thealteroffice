@@ -1,4 +1,4 @@
-import GoogleLoginButton from "../components/GoogleLoginButton";
+import { useCallback } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useLoginMutation } from "../redux/feature/api/authApi";
 import { Link, useNavigate } from "react-router-dom";
@@ -6,6 +6,8 @@ import helper from "../config/helper";
 import { message } from "antd";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../redux/feature/authSlice";
+import { hideLoading, showLoading } from "../redux/feature/defaultSlice";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 // Define form data structure
 interface LoginFormInputs {
@@ -14,67 +16,81 @@ interface LoginFormInputs {
 }
 
 const Login: React.FC = () => {
-  const { register, handleSubmit } = useForm<LoginFormInputs>(); // Type-safe form
-  const navigate = useNavigate(); // Navigation
-  const [loginUser, { isLoading }] = useLoginMutation(); // API call state tracking
-  const dispatch = useDispatch(); // Redux Dispatch
+  const { register, handleSubmit } = useForm<LoginFormInputs>({
+    mode: "onBlur", 
+    defaultValues: { email: "", password: "" },
+  });
 
-  const appName = import.meta.env.VITE_APP_NAME ?? "Application"; // Fallback if undefined
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [loginUser, { isLoading }] = useLoginMutation();
+  const appName = import.meta.env.VITE_APP_NAME ?? "Application";
 
-  const onFinish: SubmitHandler<LoginFormInputs> = async (input) => {
+  // Form Submission Handler
+  const onFinish: SubmitHandler<LoginFormInputs> = useCallback(async (input) => {
     try {
+      dispatch(showLoading());
       const { data, error }: any = await loginUser(input);
+      dispatch(hideLoading());
 
       if (data) {
-        message.success(data?.msg);
+        message.success(data.msg);
         dispatch(setCredentials(data));
-        navigate("/"); // Redirecting to dashboard instead of login
+        navigate("/");
       } else {
-        message.error(error?.data?.msg);
+        message.error(error?.data?.msg || "Invalid credentials");
       }
-    } catch (err: any) {
-      message.error(err.message);
+    } catch (e: any) {
+      console.log("🚀 ~ constonFinish:SubmitHandler<LoginFormInputs>=useCallback ~ e:", e)
+      dispatch(hideLoading());
+      message.error(e?.message || "An unexpected error occurred");
     }
-  };
+  }, [dispatch, loginUser, navigate]);
 
   return (
     <>
-      <form className="mb-5" onSubmit={handleSubmit(onFinish, helper.errorHandle)}>
-        {/* Email Input */}
-        <div className="mb-3">
-          <label className="form-label">Email <span className="text-danger">*</span></label>
-          <input
-            type="email"
-            {...register("email", { required: "Email is required" })}
-            className="form-control"
-            placeholder="Enter your email"
-          />
-        </div>
+      <fieldset disabled={isLoading} className="mb-5">
+        <form onSubmit={handleSubmit(onFinish, helper.errorHandle)}>
+          {/* Email Input */}
+          <div className="mb-3">
+            <label className="form-label" htmlFor="email">Email <span className="text-danger">*</span></label>
+            <input
+              type="email"
+              id="email"
+              {...register("email", { required: "Email is required" })}
+              className="form-control"
+              placeholder="Enter your email"
+              aria-label="Email Address"
+            />
+          </div>
 
-        {/* Password Input */}
-        <div className="mb-3">
-          <label className="form-label">Password <span className="text-danger">*</span></label>
-          <input
-            type="password"
-            {...register("password", { required: "Password is required" })}
-            className="form-control"
-            placeholder="Enter your password"
-          />
-        </div>
+          {/* Password Input */}
+          <div className="mb-3">
+            <label className="form-label" htmlFor="password">Password <span className="text-danger">*</span></label>
+            <input
+              type="password"
+              id="password"
+              {...register("password", { required: "Password is required" })}
+              className="form-control"
+              placeholder="Enter your password"
+              aria-label="Password"
+            />
+          </div>
 
-        {/* Register Link */}
-        <div className="mb-3" style={{ fontSize: "14px" }}>
-          <span className="text-secondary">New to {appName}? </span>
-          <Link className="text-decoration-none" to="/auth/register">Register</Link>
-        </div>
+          {/* Register Link */}
+          <div className="mb-3" style={{ fontSize: "14px" }}>
+            <span className="text-secondary">New to {appName}? </span>
+            <Link className="text-decoration-none" to="/auth/register">Register</Link>
+          </div>
 
-        {/* Submit Button */}
-        <div className="d-flex justify-content-center">
-          <button type="submit" className="btn btn-primary" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-        </div>
-      </form>
+          {/* Submit Button */}
+          <div className="d-flex justify-content-center">
+            <button type="submit" className="btn btn-primary">
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
+          </div>
+        </form>
+      </fieldset>
 
       {/* Google Login Button */}
       <div className="d-flex justify-content-center">

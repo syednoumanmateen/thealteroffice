@@ -2,32 +2,30 @@ import { Dropdown, MenuProps } from 'antd';
 import { FC, memo } from 'react';
 import { SlOptions } from 'react-icons/sl';
 
-interface propsType {
+interface Props {
     _id: string;
-    data?: any;
-    handleEdit: (_id: string, data: any) => void;
+    data?: Record<string, any>; // Explicit type for data
+    handleEdit: (_id: string, data: Record<string, any> | undefined) => void;
     handleDelete: (_id: string) => void;
 }
 
-const DropDownFromList: FC<propsType> = ({ _id, data, handleEdit, handleDelete }) => {
+const DropDownFromList: FC<Props> = ({ _id, data, handleEdit, handleDelete }) => {
     const dropdownItems: MenuProps['items'] = [
         {
-            key: '1',
-            label: (
-                <div className='' onClick={() => handleEdit(_id, data)}>Edit</div>
-            )
+            key: 'edit',
+            label: <span onClick={() => handleEdit(_id, data)}>Edit</span>,
         },
         {
-            key: '2',
-            label: (
-                <div className='' onClick={() => handleDelete(_id)}>Delete</div>
-            )
+            key: 'delete',
+            label: <span onClick={() => handleDelete(_id)}>Delete</span>,
         }
     ];
 
     return (
-        <Dropdown menu={{ items: dropdownItems }} placement="bottom" arrow><SlOptions /></Dropdown>
-    )
-}
+        <Dropdown menu={{ items: dropdownItems }} placement="bottom" arrow>
+            <SlOptions />
+        </Dropdown>
+    );
+};
 
-export default memo(DropDownFromList)
+export default memo(DropDownFromList);

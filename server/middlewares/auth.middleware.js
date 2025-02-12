@@ -3,7 +3,7 @@ import { verifyToken } from "../config/helper.js";
 export const authValidate = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
-        
+
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({ msg: "Unauthorized: No token provided", success: false });
         }
@@ -19,7 +19,7 @@ export const authValidate = async (req, res, next) => {
         req.userDetails = decodedData.user;
         next();
     } catch (e) {
-        console.error("🚀 ~ Authorization Error:", e.message);
+        console.log(`error: ${e}`)
         res.status(500).json({ msg: "Internal Server Error", success: false, error: e.message });
     }
 };

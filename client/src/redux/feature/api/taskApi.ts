@@ -37,10 +37,10 @@ export const taskApi = createApi({
             }),
         }),
         updateMultipleTasks: builder.mutation({
-            query: (tasks) => ({
-                url: "/multi/taskIds",
+            query: (updateData) => ({
+                url: "/multi/taskIds/update",
                 method: "POST",
-                body: { tasks },
+                body: updateData,
             }),
         }),
         deleteTask: builder.mutation({
@@ -51,7 +51,7 @@ export const taskApi = createApi({
         }),
         deleteMultipleTasks: builder.mutation({
             query: (taskIds) => ({
-                url: "/multi/taskIds",
+                url: "/multi/taskIds/delete",
                 method: "POST",
                 body: { taskIds },
             }),

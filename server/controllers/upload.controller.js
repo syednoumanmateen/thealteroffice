@@ -17,6 +17,7 @@ export const uploadImageController = async (req, res) => {
             imageId: savedImage._id 
         });
     } catch (e) {
+        console.log(`error: ${e}`)
         return res.status(500).json({ message: "Image upload failed", error: e.message });
     }
 };
@@ -36,6 +37,7 @@ export const uploadMultipleImagesController = async (req, res) => {
             imageIds: savedImages.map(i => i._id) 
         });
     } catch (e) {
+        console.log(`error: ${e}`)
         return res.status(500).json({ message: "Image upload failed", error: e.message });
     }
 };
@@ -68,6 +70,7 @@ export const fetchImagesController = async (req, res) => {
 
         return res.status(200).json({ message: "Images fetched successfully", images: imageUrls });
     } catch (e) {
+        console.log(`error: ${e}`)
         return res.status(500).json({ message: "Image fetch failed", error: e.message });
     }
 };

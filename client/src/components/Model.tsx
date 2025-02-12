@@ -1,41 +1,41 @@
-import { Drawer, Modal } from 'antd'
-import { FC, memo } from 'react'
-import TaskForm from './task/TaskForm'
+import { Drawer, Modal } from "antd";
+import { FC, memo } from "react";
+import TaskForm from "./task/TaskForm";
 
-interface propsType {
+interface PropsType {
     title: string;
     isMobile: boolean;
     isModalOpen: boolean;
-    setIsModalOpen: (data: any) => void;
+    setIsModalOpen: (isOpen: any) => void;
     input?: any;
     width?: number;
 }
 
-const Model: FC<propsType> = ({ title, isMobile, isModalOpen, setIsModalOpen, input, width }) => {
-    return (
-        <>
-            {!isMobile && <Modal
-                title={`${title} Task`}
-                open={isModalOpen}
-                width={width}
-                centered
-                onCancel={() => setIsModalOpen(false)}
-                footer={null}
-            >
-                <TaskForm closeModal={setIsModalOpen} input={input} />
-            </Modal>}
+const Model: FC<PropsType> = ({ title, isMobile, isModalOpen, setIsModalOpen, input, width }) => {
+    const handleClose = () => setIsModalOpen(false);
 
-            {isMobile && <Drawer
-                title={`${title} Task`}
-                placement='bottom'
-                onClose={() => setIsModalOpen(false)}
-                height="95vh"
-                style={{ borderRadius: "15px 15px 0 0" }}
-                open={isModalOpen}>
-                <TaskForm closeModal={setIsModalOpen} input={input} />
-            </Drawer>}
-        </>
-    )
-}
+    const commonProps = {
+        title: `${title} Task`,
+        open: isModalOpen,
+        onCancel: handleClose,
+        footer: null,
+    };
 
-export default memo(Model)
+    return isMobile ? (
+        <Drawer
+            {...commonProps}
+            placement="bottom"
+            onClose={handleClose}
+            height="95vh"
+            style={{ borderRadius: "15px 15px 0 0" }}
+        >
+            <TaskForm closeModal={setIsModalOpen} input={input} />
+        </Drawer>
+    ) : (
+        <Modal {...commonProps} width={width} centered>
+            <TaskForm closeModal={setIsModalOpen} input={input} />
+        </Modal>
+    );
+};
+
+export default memo(Model);

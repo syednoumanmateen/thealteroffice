@@ -1,13 +1,18 @@
-import { DatePicker } from "antd";
+import { DatePicker, Dropdown, message } from "antd";
+import dayjs from "dayjs";
 import { DragEvent, FC, memo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useScreenSize from "../../hooks/useScreenSize";
 import { listData } from "../../pages/TaskBuddy";
 import Accordian from "../inputs/Accordian";
 import Button from "../inputs/Button";
-import DropDownFromList from "./DropDownFromList";
-import dayjs from "dayjs";
 import Model from "../Model";
+import DropDownFromList from "./DropDownFromList";
+import { RiCheckboxMultipleLine } from "react-icons/ri";
+import { useDeleteMultipleTasksMutation, useUpdateMultipleTasksMutation } from "../../redux/feature/api/taskApi";
+import { useNavigate } from "react-router-dom";
+import { hideLoading, showLoading } from "../../redux/feature/defaultSlice";
+import { useDispatch } from "react-redux";
 
 interface AccordianItemType {
   key: string;
@@ -17,11 +22,20 @@ interface AccordianItemType {
 
 const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete, handleCreate }) => {
   const isMobile = useScreenSize();
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch()
+
   const [openFormAdd, setOpenFormAdd] = useState(false);
   const [draggedTask, setDraggedTask] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState({ value: false, key: 0 });
+  const [selectedIds, setSelectedIds] = useState<any>([])
+  const [statusChange, setStatusChange] = useState("To Do");
 
   const { register, handleSubmit, control } = useForm();
+
+  const [updateMultipleTasks] = useUpdateMultipleTasksMutation()
+  const [deleteMultipleTasks] = useDeleteMultipleTasksMutation()
 
   const [accordianItem, setAccordianItem] = useState<AccordianItemType[]>([
     { key: "todo", label: "To Do", isOpen: true },
@@ -29,7 +43,7 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
     { key: "completed", label: "Completed", isOpen: true },
   ]);
 
-
+  // accordian open&close
   const handleToggle = (key: string) => {
     setAccordianItem((prev: any) =>
       prev.map((acc: any) =>
@@ -38,6 +52,7 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
     );
   };
 
+  // drag and drop logic
   const handleDragStart = (task: any) => setDraggedTask(task);
   const handleDragOver = (e: DragEvent<HTMLTableRowElement>) => e.preventDefault();
 
@@ -47,13 +62,49 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
     const updatedItems = items.map((task) =>
       task._id === draggedTask._id ? { ...task, status: newStatus } : task
     );
-
+    items.forEach((task) =>
+      task._id === draggedTask._id ? handleEdit(draggedTask._id, { status: newStatus }) : null
+    )
     setItems(updatedItems);
     setDraggedTask(null);
+  };
+  // drag and drop logic
+
+  const handleSelect = (id: string) => {
+    setSelectedIds((prev: any) =>
+      prev.includes(id) ? prev.filter((i: any) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleMultipleEdit = async () => {
+    try {
+      dispatch(showLoading());
+      const { data } = await updateMultipleTasks({ taskIds: selectedIds, status: statusChange });
+      message.success(data?.msg);
+      dispatch(hideLoading());
+      navigate("/");
+    } catch (error: any) {
+      dispatch(hideLoading());
+      message.error(error?.data?.msg || "An error occurred");
+    }
+  };
+
+  const handleMultipleDelete = async () => {
+    try {
+      dispatch(showLoading());
+      const { data } = await deleteMultipleTasks(selectedIds);
+      message.success(data?.msg);
+      dispatch(hideLoading());
+      navigate("/");
+    } catch (error: any) {
+      dispatch(hideLoading());
+      message.error(error?.data?.msg || "An error occurred");
+    }
   };
 
   return (
     <>
+      {/* table headers start */}
       {!isMobile && (
         <table className="table">
           <thead className="table-white">
@@ -66,7 +117,9 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
           </thead>
         </table>
       )}
+      {/* table headers end */}
 
+      {/* accordian start */}
       {accordianItem.map((status) => {
         const filteredTasks = items.filter((task) => task.status === status.label);
 
@@ -83,6 +136,7 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
                   </div>
                 )}
 
+                {/* add task in list start  */}
                 {openFormAdd && !isMobile && status.label === "To Do" && (
                   <form onSubmit={handleSubmit(handleCreate)}>
                     <table className="table">
@@ -138,6 +192,7 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
                     </table>
                   </form>
                 )}
+                {/* add task in list end  */}
 
                 {/* 🔹 Empty Drop Area when no tasks are present */}
                 <div
@@ -163,7 +218,8 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
                           >
                             <td className="col-4">
                               <div className="d-flex align-items-center">
-                                <input type="checkbox" className="me-2" /> <span className="mx-2">: :</span>
+                                <input type="checkbox" onChange={() => handleSelect(task._id)} className="me-2" />
+                                <span className="mx-2">: :</span>
                                 <span className={task.status === "Completed" ? "text-decoration-line-through" : ""}>
                                   {task.name}
                                 </span>
@@ -201,10 +257,44 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
           </div>
         );
       })}
+      {/* accordian end */}
 
       {!isMobile && <Model title="Edit a" width={1250} isMobile={isMobile} isModalOpen={isModalOpen?.value} setIsModalOpen={setIsModalOpen} input={{ id: "edit", key: isModalOpen.key }} />}
 
       {isMobile && <Model title="Edit a" isMobile={isMobile} isModalOpen={isModalOpen?.value} setIsModalOpen={setIsModalOpen} input={{ id: "edit", key: isModalOpen.key }} />}
+
+      {/* select update || delete start */}
+      {selectedIds && selectedIds?.length > 0 && <>
+        <div className="position-relative">
+          <div className="position-fixed bottom-0 start-50 translate-middle-x card bg-dark" style={{ width: `${isMobile ? "80vw" : "40vw"}` }}>
+            <div className="card-body text-danger">
+              <div className="row g-0">
+                <div className="col-6 col-sm-8 text-light">
+                  <span className="badge me-3">{selectedIds.length} tasks selected</span>
+                  <span onClick={handleMultipleEdit}><RiCheckboxMultipleLine /></span>
+                </div>
+                <div className="col-6 col-sm-4">
+                  <Dropdown
+                    menu={{
+                      items: accordianItem.map(({ key, label }) => ({
+                        key,
+                        label: <span onClick={() => setStatusChange(label)}>{label}</span>,
+                      })),
+                    }}
+                    placement="bottom"
+                    arrow
+                  >
+                    <button className="btn btn-sm btn-outline-light rounded-5">Status</button>
+                  </Dropdown>
+
+                  <button className="btn btn-sm btn-outline-danger rounded-5 ms-2" onClick={handleMultipleDelete}>Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>}
+      {/* select update || delete end */}
     </>
   );
 };

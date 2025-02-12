@@ -31,6 +31,3 @@ body {
   height: 100vh;
 }
 
-.theme-color {
-  color: var(--theme-color);
-}

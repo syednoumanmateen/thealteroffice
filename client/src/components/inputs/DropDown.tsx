@@ -1,18 +1,15 @@
-import { Dropdown } from 'antd'
-import { FC, memo, ReactNode } from 'react'
+import { Dropdown } from "antd";
+import { FC, memo, ReactNode } from "react";
 
-interface propsType {
+interface DropDownProps {
     children: ReactNode;
-    items: any
+    items: { key: string; label: string; onClick?: () => void }[];
 }
 
-const DropDown: FC<propsType> = ({ children, items }) => {
-    return (
-        <Dropdown menu={items } placement="bottom" arrow>
-            {children}
-        </Dropdown>
+const DropDown: FC<DropDownProps> = ({ children, items }) => (
+    <Dropdown menu={{ items }} placement="bottom" arrow>
+        {children}
+    </Dropdown>
+);
 
-    )
-}
-
-export default memo(DropDown)
+export default memo(DropDown);

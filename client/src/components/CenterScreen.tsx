@@ -1,16 +1,24 @@
-import { CSSProperties, FC, memo, ReactNode } from 'react'
+import { CSSProperties, FC, ReactNode, useMemo } from "react";
 
-interface propsTypes {
+interface CenterScreenProps {
     children: ReactNode;
-    style?: CSSProperties
+    style?: CSSProperties;
 }
 
-const CenterScreen: FC<propsTypes> = ({ children, style }) => {
-    return (
-        <div className="d-flex justify-content-center align-items-center hght-100" style={style}>
-            {children}
-        </div>
-    )
-}
+const CenterScreen: FC<CenterScreenProps> = ({ children, style }) => {
+    const combinedStyle = useMemo<CSSProperties>(
+        () => ({
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            width: "100%",
+            ...style, // Merge user-provided styles
+        }),
+        [style]
+    );
 
-export default memo(CenterScreen)
+    return <div style={combinedStyle}>{children}</div>;
+};
+
+export default CenterScreen;

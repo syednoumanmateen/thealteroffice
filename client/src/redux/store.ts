@@ -1,19 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { authApi } from "./feature/api/authApi";
-import authReducer from "./feature/authSlice";
-import taskReducer from "./feature/taskSlice";
 import { uploadApi } from "./feature/api/uploadApi";
 import { taskApi } from "./feature/api/taskApi";
+import authReducer from "./feature/authSlice";
+import loadingReducer from "./feature/defaultSlice";
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
+    loading: loadingReducer,
     [authApi.reducerPath]: authApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
     [taskApi.reducerPath]: taskApi.reducer,
-    auth: authReducer,
-    task: taskReducer
   },
-  middleware: (getDefaultMiddleware: any) =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(authApi.middleware, uploadApi.middleware, taskApi.middleware),
 });
 

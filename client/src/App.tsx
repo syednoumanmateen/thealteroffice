@@ -1,37 +1,49 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import { useSelector } from "react-redux";
 import CenterScreen from "./components/CenterScreen";
-import { Suspense } from "react";
 import PublicLayout from "./components/layout/PublicLayout";
 import PrivateLayout from "./components/layout/PrivateLayout";
-import NotFound from "./components/NotFound";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Test from "./pages/Test";
-import TaskBuddy from "./pages/TaskBuddy";
 import "./App.css";
 
+// Lazy-loaded Components
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Test = lazy(() => import("./pages/Test"));
+const TaskBuddy = lazy(() => import("./pages/TaskBuddy"));
+const NotFound = lazy(() => import("./components/NotFound"));
+
 const App = () => {
-  const loadingUI = <CenterScreen><>Loading</></CenterScreen>
-  let loading = false
+  const loadingUI = <CenterScreen>Loading...</CenterScreen>;
+
+  // Improved Redux Selector with TypeScript support
+  const { loading } = useSelector((state: any) => state.loading);
 
   return (
-    <>{loading ? loadingUI :
-      <BrowserRouter>
-        <Suspense fallback={loadingUI}>
+    <BrowserRouter>
+      <Suspense fallback={loadingUI}>
+        {loading ? (
+          loadingUI
+        ) : (
           <Routes>
+            {/* Public Routes */}
             <Route path="/auth" element={<PublicLayout />}>
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
             </Route>
+
+            {/* Private Routes */}
             <Route path="/" element={<PrivateLayout />}>
               <Route index element={<TaskBuddy />} />
             </Route>
-            <Route path="*" element={<NotFound />} />
+
+            {/* Other Routes */}
             <Route path="/test" element={<Test />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
-        </Suspense>
-      </BrowserRouter>}
-    </>
+        )}
+      </Suspense>
+    </BrowserRouter>
   );
 };
 

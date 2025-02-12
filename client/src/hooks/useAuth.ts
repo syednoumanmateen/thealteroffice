@@ -19,8 +19,8 @@ const useAuth = () => {
                     dispatch(logout());
                     navigate("/auth/login"); // Redirect to login page
                 }
-            } catch (error) {
-                console.error("Invalid token:", error);
+            } catch (e:any) {
+                console.log("🚀 ~ useEffect ~ e:", e)
                 dispatch(logout());
                 navigate("/auth/login"); // Redirect to login page
             }

@@ -17,12 +17,12 @@ router.get("/:id", authValidate, getTaskByIdController);
 router.put("/:id", authValidate, updateTaskController);
 
 // Update a multiple task by ID
-router.put("/multi/taskIds", authValidate, updateTaskMultipleController);
+router.post("/multi/taskIds/update", authValidate, updateTaskMultipleController);
 
 // Delete a task by ID
 router.delete("/:id", authValidate, deleteTaskController);
 
 // Delete a task by ID
-router.delete("/multi/taskIds", authValidate, deleteTaskMultipleController);
+router.post("/multi/taskIds/delete", authValidate, deleteTaskMultipleController);
 
 export default router;

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { BiTask } from 'react-icons/bi';
 import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import CenterScreen from '../CenterScreen';
 import useAuth from '../../hooks/useAuth';
 
@@ -20,11 +20,13 @@ const Title = () => {
 }
 
 const PublicLayout = () => {
-    const pathSegments = window.location.pathname.split("/");
-    const name = pathSegments.filter(segment => segment).pop()?.replace(/^\w/, (c) => c.toUpperCase());
+    
     useAuth(); // Check token validity
-
     const token = useSelector((state: any) => state.auth.token);
+
+    const location = useLocation();
+    const pageTitle = location.pathname.split("/").pop()?.replace(/^\w/, (c) => c.toUpperCase()) || "Home";
+
 
     return (
         <>
@@ -32,7 +34,7 @@ const PublicLayout = () => {
                 <div>
                     <Title />
                     <div className='border rounded bg-white p-5'>
-                        <h4 className="mb-3 text-center">{name} Page</h4>
+                        <h4 className="mb-3 text-center">{pageTitle} Page</h4>
                         <Outlet />
                     </div>
                 </div>

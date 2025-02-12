@@ -26,6 +26,7 @@ export const registerController = async (req, res) => {
 
         res.status(201).json({ msg: "Registration successful", user: newUser });
     } catch (e) {
+        console.log(`error: ${e}`)
         res.status(500).json({ msg: "Server error", error: e.message });
     }
 };
@@ -57,6 +58,7 @@ export const loginController = async (req, res) => {
 
         res.status(200).json({ msg: "Login successful", token, user });
     } catch (e) {
+        console.log(`error: ${e}`)
         res.status(500).json({ msg: "Server error", error: e.message });
     }
 };
@@ -90,7 +92,7 @@ export const googleLoginController = async (req, res) => {
         console.log("🚀 ~ googleLoginController ~ token:", token)
         res.status(200).json({ msg: "Login successful", token, user });
     } catch (e) {
-        token
+        console.log(`error: ${e}`)
         res.status(500).json({ msg: "Google authentication failed", error: e.message });
     }
 };

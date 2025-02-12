@@ -1,24 +1,25 @@
 import { FC, ReactNode } from "react";
 
-interface propsType {
+interface ButtonProps {
     children: ReactNode;
-    type: any;
-    onClick?: (data: any) => void;
-    theme?: string;
-    className?: string
+    type?: "button" | "submit" | "reset";
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    theme?: "theme" | "dark" | "theme-outline";
+    className?: string;
 }
 
-const Button: FC<propsType> = ({ children, type, onClick, theme, className }) => {
-    let btnBg = "btn-outline-dark"
-    if (theme === "theme") btnBg = "btn-theme";
-    if (theme === "dark") btnBg = "btn-dark";
-    if (theme === "theme-outline") btnBg = "btn-outline-theme";
+const Button: FC<ButtonProps> = ({ children, type = "button", onClick, theme, className = "" }) => {
+    const themeClasses = {
+        theme: "btn-theme",
+        dark: "btn-dark",
+        "theme-outline": "btn-outline-theme",
+    };
 
     return (
-        <button type={type} onClick={onClick} className={`btn rounded-5 ${btnBg} ${className}`}>
+        <button type={type} onClick={onClick} className={`btn rounded-5 ${themeClasses[theme!] || "btn-outline-dark"} ${className}`}>
             {children}
         </button>
-    )
-}
+    );
+};
 
-export default Button
+export default Button;

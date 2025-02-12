@@ -37,3 +37,7 @@
   --bs-btn-hover-border-color: #000000;
   --bs-btn-hover-color: #000000;
 }
+
+.theme-color {
+  color: var(--theme-color);
+}

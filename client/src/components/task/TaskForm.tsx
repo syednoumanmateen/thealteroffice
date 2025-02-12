@@ -8,11 +8,12 @@ import { useMultipleUploadMutation } from "../../redux/feature/api/uploadApi";
 import FileUpload from "../inputs/FileUpload";
 import Button from "../inputs/Button";
 import useScreenSize from "../../hooks/useScreenSize";
-import { useCreateTaskMutation } from "../../redux/feature/api/taskApi";
+import { useCreateTaskMutation, useFetchTaskByIdMutation } from "../../redux/feature/api/taskApi";
 import { message } from "antd";
 import { memo, useEffect, useState } from "react";
 import { useFetchAllLogsMutation } from "../../redux/feature/api/logsApi";
 import dayjs from "dayjs";
+import { hideLoading, showLoading } from "../../redux/feature/defaultSlice";
 
 const TaskForm = ({ closeModal, input }: any) => {
     const { register, handleSubmit, control, reset } = useForm();
@@ -20,11 +21,13 @@ const TaskForm = ({ closeModal, input }: any) => {
     const [multipleUpload] = useMultipleUploadMutation();
     const [createTask] = useCreateTaskMutation()
     const [fetchAllLogs] = useFetchAllLogsMutation()
+    const [fetchTaskById] = useFetchTaskByIdMutation()
 
     const [logs, setLogs] = useState([])
 
     const onFinish = async (input: any) => {
         try {
+          dispatch(showLoading());
             let uploadres: any = {};
             if (input.attachments?.length) {
                 const formData = new FormData();
@@ -34,6 +37,7 @@ const TaskForm = ({ closeModal, input }: any) => {
             }
 
             const { data } = await createTask({ ...input, attachments: uploadres?.data?.imageIds })
+        dispatch(    hideLoading());
             if (data) {
                 message.success(data?.msg)
                 reset({})
@@ -42,13 +46,16 @@ const TaskForm = ({ closeModal, input }: any) => {
                 message.error("");
             }
         } catch (e) {
+        dispatch(    hideLoading());
             console.error("Failed to create task", e);
         }
     };
 
     const fetchAllLogData = async () => {
         try {
+          dispatch(showLoading());
             const { data, error }: any = await fetchAllLogs(input.key);
+        dispatch(    hideLoading());
 
             if (data) {
                 message.success(data?.msg);
@@ -56,13 +63,33 @@ const TaskForm = ({ closeModal, input }: any) => {
             } else {
                 message.error(error?.data?.msg);
             }
+        } catch (e: any) {
+        dispatch(    hideLoading());
+            message.error(e.message);
+        }
+    }
+
+    const fetchTaskData = async () => {
+        try {
+          dispatch(showLoading());
+            const { data, error }: any = await fetchTaskById(input.key);
+        dispatch(    hideLoading());
+
+            if (data) {
+                message.success(data?.msg);
+
+            } else {
+                message.error(error?.data?.msg);
+            }
         } catch (err: any) {
+        dispatch(    hideLoading());
             message.error(err.message);
         }
     }
 
     useEffect(() => {
         if (input.id === "edit") {
+            fetchTaskData()
             fetchAllLogData()
         }
     }, [input])
@@ -177,7 +204,7 @@ const TaskForm = ({ closeModal, input }: any) => {
                 {form}
             </div>
             {input.id === "edit" && <div className="col-5">
-                <div className="card bg-card h-100">
+                <div className={`card shadow-sm bg-card rounded overflow-auto`} style={{ height: "60vh" }}>
                     <div className="card-header bg-white">Activity Logs</div>
                     <div className="card-body">
                         {logs?.map((log: any) => (

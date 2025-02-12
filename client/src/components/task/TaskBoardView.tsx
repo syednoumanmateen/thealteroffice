@@ -2,23 +2,22 @@ import { DragEvent, FC, memo, useState } from "react";
 import { listData } from "../../pages/TaskBuddy";
 import DropDownFromList from "./DropDownFromList";
 import dayjs from "dayjs";
+import useScreenSize from "../../hooks/useScreenSize";
+import Model from "../Model";
 
 const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete, handleCreate }) => {
+  const isMobile = useScreenSize();
   const [draggedTask, setDraggedTask] = useState<any>(null);
-
+  const [isModalOpen, setIsModalOpen] = useState({ value: false, key: 0 });
   const statusCategories = [
     { key: "todo", label: "To Do", bgClass: "bg-todo" },
     { key: "inprogress", label: "In Progress", bgClass: "bg-inprogress" },
     { key: "completed", label: "Completed", bgClass: "bg-completed" },
   ];
 
-  const handleDragStart = (task: any) => {
-    setDraggedTask(task);
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
+  // drag and drop logic
+  const handleDragStart = (task: any) => setDraggedTask(task);
+  const handleDragOver = (e: DragEvent<HTMLTableRowElement>) => e.preventDefault();
 
   const handleDrop = (newStatus: string) => {
     if (!draggedTask) return;
@@ -26,10 +25,13 @@ const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete
     const updatedItems = items.map((task) =>
       task._id === draggedTask._id ? { ...task, status: newStatus } : task
     );
-
+    items.forEach((task) =>
+      task._id === draggedTask._id ? handleEdit(draggedTask._id, { status: newStatus }) : null
+    )
     setItems(updatedItems);
     setDraggedTask(null);
   };
+  // drag and drop logic
 
   return (
     <div className="container-fluid p-0">
@@ -61,7 +63,7 @@ const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete
                             <h6 className="mb-1">
                               <span className={task.status === "Completed" ? "text-decoration-line-through" : ""}>{task.name}</span>
                             </h6>
-                            <DropDownFromList _id={task._id} data={task} handleEdit={handleEdit} handleDelete={handleDelete} />
+                            <DropDownFromList _id={task._id} data={task} handleEdit={() => setIsModalOpen({ value: true, key: task._id })} handleDelete={handleDelete} />
                           </div>
                           <div className="d-flex">
                             {
@@ -81,6 +83,10 @@ const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete
             </div>
           );
         })}
+        {!isMobile && <Model title="Edit a" width={1250} isMobile={isMobile} isModalOpen={isModalOpen?.value} setIsModalOpen={setIsModalOpen} input={{ id: "edit", key: isModalOpen.key }} />}
+
+        {isMobile && <Model title="Edit a" isMobile={isMobile} isModalOpen={isModalOpen?.value} setIsModalOpen={setIsModalOpen} input={{ id: "edit", key: isModalOpen.key }} />}
+
       </div>
     </div >
   );
