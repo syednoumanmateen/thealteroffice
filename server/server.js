@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
 import uploadRoutes from "./routes/upload.router.js";
 import taskRoutes from "./routes/task.route.js";
+import logsRoutes from "./routes/logs.route.js"
 
 // Initialize Express App
 const app = express();
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/task", taskRoutes);
+app.use("/api/v1/logs", logsRoutes)
 
 // Start Server
 const PORT = process.env.PORT || 8080;

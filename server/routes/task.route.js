@@ -1,5 +1,5 @@
 import express from "express";
-import { createTaskController, getAllTasksController, getTaskByIdController, updateTaskController, deleteTaskController } from "../controllers/task.controller.js";
+import { createTaskController, getAllTasksController, getTaskByIdController, updateTaskController, deleteTaskController, updateTaskMultipleController, deleteTaskMultipleController } from "../controllers/task.controller.js";
 import { authValidate } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -16,7 +16,13 @@ router.get("/:id", authValidate, getTaskByIdController);
 // Update a task by ID
 router.put("/:id", authValidate, updateTaskController);
 
+// Update a multiple task by ID
+router.put("/multi/taskIds", authValidate, updateTaskMultipleController);
+
 // Delete a task by ID
 router.delete("/:id", authValidate, deleteTaskController);
+
+// Delete a task by ID
+router.delete("/multi/taskIds", authValidate, deleteTaskMultipleController);
 
 export default router;

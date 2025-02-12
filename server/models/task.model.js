@@ -1,18 +1,21 @@
-import mongoose, { Schema } from "mongoose"
+import mongoose, { Schema } from "mongoose";
 
-const taskSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String },
-    category: { type: String, enum: ["WORK", "PERSONAL"], required: true },
-    dueDate: { type: Date, required: true },
-    status: { type: String, default: "TO-DO", enum: ["TO-DO", "IN-PROGRESS", "COMPLETED"] },
-    attachment: { type: Schema.Types.ObjectId, ref: "upload" },
-    userId: { type: Schema.Types.ObjectId, ref: "user", required: true },
-}, {
-    timestamps: true,
-    collection: "task"
-})
+const taskSchema = new Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        description: { type: String, trim: true },
+        category: { type: String, enum: ["Work", "Personal"], required: true },
+        dueDate: { type: Date, required: true },
+        status: { type: String, default: "To Do", enum: ["To Do", "In Progress", "Completed"] }, // Fixed typo in "To-Do"
+        attachment: { type: Schema.Types.ObjectId, ref: "Upload" }, // Changed to PascalCase
+        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    },
+    {
+        timestamps: true,
+        collection: "tasks", // Plural for consistency
+    }
+);
 
-const task = mongoose.model("task", taskSchema)
+const Task = mongoose.model("Task", taskSchema);
 
-export default task
+export default Task;

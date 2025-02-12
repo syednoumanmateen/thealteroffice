@@ -7,4 +7,16 @@ obj.errorHandle = (e: any) => {
     message.error(e[arr[0]].message)
 }
 
+obj.groupByStatus = (tasks: any) => {
+    return tasks.reduce((acc: any, task: any) => {
+        acc[task.status] = acc[task.status] || [];
+        acc[task.status].push(task);
+        return acc;
+    }, {});
+};
+
+obj.reload = () => {
+    window.location.reload()
+}
+
 export default obj

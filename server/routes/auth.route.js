@@ -1,5 +1,5 @@
 import express from "express";
-import { googleAuthController, googleLoginController, loginController, registerController } from "../controllers/auth.controller.js";
+import { googleLoginController, loginController, registerController } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
@@ -11,8 +11,5 @@ router.post("/login", loginController);
 
 // Google OAuth Login
 router.post("/google-login", googleLoginController);
-
-// Google OAuth User Info
-router.post("/google-user-info", googleAuthController);
 
 export default router;

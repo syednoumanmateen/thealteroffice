@@ -1,0 +1,39 @@
+.active {
+  border-bottom: 2px solid var(--theme-color);
+}
+
+.bg-todo {
+  background-color: var(--todo);
+}
+
+.bg-inprogress {
+  background-color: var(--inprogress);
+}
+
+.bg-completed {
+  background-color: var(--Completed);
+}
+
+.bg-table {
+  --bs-table-bg: var(--card-color);
+}
+
+.bg-card {
+  --bs-card-bg: var(--card-color);
+}
+
+.btn-theme {
+  --bs-btn-bg: var(--theme-color);
+  --bs-btn-color: #ffffff;
+  --bs-btn-hover-border-color: var(--theme-color);
+  --bs-btn-hover-color: var(--theme-color);
+}
+
+.btn-outline-theme {
+  --bs-btn-border-color: var(--theme-color);
+  --bs-btn-color: var(--theme-color);
+  --bs-btn-active-bg: var(--theme-color);
+  --bs-btn-active-color: #ffffff;
+  --bs-btn-hover-border-color: #000000;
+  --bs-btn-hover-color: #000000;
+}

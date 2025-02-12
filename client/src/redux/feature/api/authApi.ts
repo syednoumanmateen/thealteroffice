@@ -18,16 +18,19 @@ export const authApi = createApi({
                 body: userData,
             }),
         }),
-        googleLogin: builder.mutation({
-            query: (credential: any) => ({
-                url: "/google-login",
+        loginUserById: builder.mutation({
+            query: (access_token: any) => ({
+                url: "/logedInUser",
                 method: "POST",
-                body: { credential },
+                body: { access_token },
+                headers: {
+                    Authorization: `Bearer ${access_token}`, // Attaching token for authorization
+                },
             }),
         }),
-        googleUserInfo: builder.mutation({
+        googleLogin: builder.mutation({
             query: (access_token: any) => ({
-                url: "/google-user-info",
+                url: "/google-login",
                 method: "POST",
                 body: { access_token },
             }),
@@ -35,4 +38,4 @@ export const authApi = createApi({
     }),
 });
 
-export const { useRegisterMutation, useLoginMutation, useGoogleLoginMutation, useGoogleUserInfoMutation } = authApi;
+export const { useRegisterMutation, useLoginMutation, useGoogleLoginMutation } = authApi;

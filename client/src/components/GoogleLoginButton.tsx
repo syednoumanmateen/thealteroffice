@@ -1,12 +1,13 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useGoogleUserInfoMutation } from "../redux/feature/api/authApi";
+import { useGoogleLoginMutation } from "../redux/feature/api/authApi";
 import { setCredentials } from "../redux/feature/authSlice";
+import { message } from "antd";
 
 const GoogleLoginButton = () => {
     const dispatch = useDispatch();
-    const [googleUserInfo] = useGoogleUserInfoMutation();
+    const [googleLogin] = useGoogleLoginMutation();
 
     // navigation object
     const navigate = useNavigate()
@@ -14,14 +15,17 @@ const GoogleLoginButton = () => {
     const login = useGoogleLogin({
         onSuccess: async (response: any) => {
             const { access_token } = response;
-            const { data }: any = await googleUserInfo(access_token);
-            dispatch(setCredentials({ user: data?.user, token: data?.token }));
-            navigate("/")
+            const { data, error }: any = await googleLogin(access_token);
+            if (data) {
+                message.success(data.msg)
+                dispatch(setCredentials(data));
+                navigate("/")
+            } else {
+                message.error(error.msg)
+            }
         },
         onError: () => console.error("Google Login Failed"),
     });
-
-
 
     return (
         <button onClick={() => login()} className="btn btn-dark fs-6 fw-bold py-2 px-5 rounded-4 d-flex align-items-enter">

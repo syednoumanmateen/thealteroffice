@@ -2,15 +2,24 @@ import { verifyToken } from "../config/helper.js";
 
 export const authValidate = async (req, res, next) => {
     try {
-        const token = req.headers['authorization'].split(" ")[1]
-        const decodedData = await verifyToken(token)
-        if (!decodedData) return res.status(200).send({ msg: "Un-Authorized", success: false })
+        const authHeader = req.headers['authorization'];
+        
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ msg: "Unauthorized: No token provided", success: false });
+        }
 
-        req.userId = decodedData._id
-        req.userDetails = decodedData
-        next()
+        const token = authHeader.split(" ")[1];
+
+        const decodedData = await verifyToken(token);
+        if (!decodedData) {
+            return res.status(403).json({ msg: "Unauthorized: Invalid or expired token", success: false });
+        }
+
+        req.userId = decodedData.user._id;
+        req.userDetails = decodedData.user;
+        next();
     } catch (e) {
-        console.log("🚀 ~ Authorization ~ e:", e)
-        res.status(500).send({ msg: e.message, success: false })
+        console.error("🚀 ~ Authorization Error:", e.message);
+        res.status(500).json({ msg: "Internal Server Error", success: false, error: e.message });
     }
-}
+};

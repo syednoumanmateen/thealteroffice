@@ -1,49 +1,85 @@
-import { useForm } from "react-hook-form";
+import GoogleLoginButton from "../components/GoogleLoginButton";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { useLoginMutation } from "../redux/feature/api/authApi";
+import { Link, useNavigate } from "react-router-dom";
+import helper from "../config/helper";
+import { message } from "antd";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../redux/feature/authSlice";
-import { Link, useNavigate } from "react-router-dom";
-import GoogleLoginButton from "../components/GoogleLoginButton";
-import helper from "../config/helper"
 
-const Login = () => {
-  const { register, handleSubmit } = useForm();//react-hhok-form
-  const [login] = useLoginMutation();//redux login
-  const dispatch = useDispatch();//dispatch object
-  const navigate = useNavigate();//navigate object
+// Define form data structure
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
 
-  const appName = import.meta.env.VITE_APP_NAME ?? 'Application'; // Fallback in case it's undefined
+const Login: React.FC = () => {
+  const { register, handleSubmit } = useForm<LoginFormInputs>(); // Type-safe form
+  const navigate = useNavigate(); // Navigation
+  const [loginUser, { isLoading }] = useLoginMutation(); // API call state tracking
+  const dispatch = useDispatch(); // Redux Dispatch
 
-  const onFinish = async (data: any) => {
-    const response: any = await login(data);
-    if (response?.data) {
-      dispatch(setCredentials(response.data));
-      navigate("/");
+  const appName = import.meta.env.VITE_APP_NAME ?? "Application"; // Fallback if undefined
+
+  const onFinish: SubmitHandler<LoginFormInputs> = async (input) => {
+    try {
+      const { data, error }: any = await loginUser(input);
+
+      if (data) {
+        message.success(data?.msg);
+        dispatch(setCredentials(data));
+        navigate("/"); // Redirecting to dashboard instead of login
+      } else {
+        message.error(error?.data?.msg);
+      }
+    } catch (err: any) {
+      message.error(err.message);
     }
   };
 
   return (
     <>
-      <form className="mb-3" onSubmit={handleSubmit(onFinish, helper.errorHandle)}>
+      <form className="mb-5" onSubmit={handleSubmit(onFinish, helper.errorHandle)}>
+        {/* Email Input */}
         <div className="mb-3">
-          <label className="form-label">Email</label><span style={{ color: "red" }}>*</span>
-          <input type="email" {...register("email", { required: "Email required" })} className="form-control" placeholder="please enter email" />
+          <label className="form-label">Email <span className="text-danger">*</span></label>
+          <input
+            type="email"
+            {...register("email", { required: "Email is required" })}
+            className="form-control"
+            placeholder="Enter your email"
+          />
         </div>
 
+        {/* Password Input */}
         <div className="mb-3">
-          <label className="form-label">Password</label><span style={{ color: "red" }}>*</span>
-          <input type="password" {...register("password", { required: "Password required" })} className="form-control" placeholder="please enter password" />
+          <label className="form-label">Password <span className="text-danger">*</span></label>
+          <input
+            type="password"
+            {...register("password", { required: "Password is required" })}
+            className="form-control"
+            placeholder="Enter your password"
+          />
         </div>
 
-        <div className='mb-3'>
-          <span className='text-secondary'>New to {appName}? </span><Link className="text-decoration-none" to="/auth/register">Register</Link>
+        {/* Register Link */}
+        <div className="mb-3" style={{ fontSize: "14px" }}>
+          <span className="text-secondary">New to {appName}? </span>
+          <Link className="text-decoration-none" to="/auth/register">Register</Link>
         </div>
 
+        {/* Submit Button */}
         <div className="d-flex justify-content-center">
-          <button type="submit" className="btn btn-primary">Login</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
         </div>
       </form>
-      <GoogleLoginButton />
+
+      {/* Google Login Button */}
+      <div className="d-flex justify-content-center">
+        <GoogleLoginButton />
+      </div>
     </>
   );
 };

@@ -4,11 +4,33 @@
   box-sizing: border-box;
 }
 
+:root {
+  --theme-color: #7b1984;
+  --project-bg: #fffff;
+  --card-color: #f1f1f1;
+  --todo: #fac3ff;
+  --inprogress: #85d9f1;
+  --Completed: #a2d6a0;
+}
+
+/* For WebKit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* For Firefox */
+html {
+  scrollbar-width: none;
+}
+
 body {
-  font-family: "Roboto", sans-serif;
-  background-color: #fff9f9;
+  background-color: var(--project-bg);
 }
 
 .hght-100 {
   height: 100vh;
+}
+
+.theme-color {
+  color: var(--theme-color);
 }
