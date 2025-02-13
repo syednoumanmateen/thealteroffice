@@ -99,6 +99,33 @@ export const updateTaskMultipleController = async (req, res) => {
     }
 };
 
+//  Delete a single task
+export const deleteTaskController = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const task = await Task.findByIdAndDelete(req.params.id);
+        if (!task) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ msg: "Task not found" });
+        }
+
+        await Logs.create({ message: `You deleted the task: ${task.name}`, userId: req.userId, taskId: task._id, time: new Date() });
+
+        await session.abortTransaction();
+        session.endSession();
+
+        res.status(200).json({ msg: "Task deleted successfully" });
+    } catch (e) {
+        await session.abortTransaction();
+        session.endSession();
+        console.log(`error: ${e}`)
+        res.status(500).json({ msg: "Task deletion failed", error: e.msg });
+    }
+};
+
 // Delete multiple tasks with Transactions
 export const deleteTaskMultipleController = async (req, res) => {
     const session = await mongoose.startSession();
