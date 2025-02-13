@@ -1,173 +1,143 @@
+import mongoose from "mongoose";
 import Task from "../models/task.model.js";
 import Logs from "../models/logs.model.js";
 
-//  Create a new task
+// Create a new task with Transactions
 export const createTaskController = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        const task = await Task.create({ ...req.body, userId: req.userId });
-        if (!task) return res.status(400).json({ msg: "Task creation failed" });
+        const task = await Task.create([{ ...req.body, userId: req.userId }], { session });
 
-        await Logs.create({ message: "You created this task", userId: req.userId, taskId: task._id, time: new Date() });
+        if (!task[0]) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({ msg: "Task creation failed" });
+        }
 
-        res.status(201).json({ msg: "Task created successfully", task });
+        await Logs.create([{ message: "You created this task", userId: req.userId, taskId: task[0]._id, time: new Date() }], { session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(201).json({ msg: "Task created successfully", task: task[0] });
     } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Task creation failed", error: e.msg });
+        await session.abortTransaction();
+        session.endSession();
+        console.error(`Error: ${e}`);
+        res.status(500).json({ msg: "Task creation failed", error: e.message });
     }
 };
 
-//  Get all tasks
+// Get all tasks
 export const getAllTasksController = async (req, res) => {
     try {
         const { search, dueDate, category } = req.query;
-        let filter = {};
+        let filter = { userId: req.userId };
 
-        // Search by task name (case-insensitive)
-        if (search) {
-            filter.name = new RegExp(search, "i");
-        }
-
-        // Filter by exact due date (if provided)
+        if (search) filter.name = new RegExp(search, "i");
         if (dueDate) {
-            filter.dueDate = { $gte: new Date(dueDate).setHours(0, 0, 0, 0), $lt: new Date(dueDate).setHours(23, 59, 59, 999) };
+            filter.dueDate = {
+                $gte: new Date(dueDate).setHours(0, 0, 0, 0),
+                $lt: new Date(dueDate).setHours(23, 59, 59, 999)
+            };
         }
+        if (category) filter.category = category;
 
-        // Filter by category (if provided)
-        if (category) {
-            filter.category = category;
-        }
         const tasks = await Task.find(filter);
-        res.status(200).json({ msg: "Task fetched successfully", tasks });
+        res.status(200).json({ msg: "Tasks fetched successfully", tasks });
     } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Error fetching tasks", error: e.msg });
+        console.error(`Error: ${e}`);
+        res.status(500).json({ msg: "Error fetching tasks", error: e.message });
     }
 };
 
-//  Get a single task by ID
-export const getTaskByIdController = async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
-        if (!task) return res.status(404).json({ msg: "Task not found" });
-
-        res.status(200).json({ task });
-    } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Error fetching task", error: e.msg });
-    }
-};
-
-//  Update a single task
-export const updateTaskController = async (req, res) => {
-    try {
-        const taskExists = await Task.findById(req.params.id);
-        if (!taskExists) return res.status(404).json({ msg: "Task not found" });
-
-        const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!task) return res.status(400).json({ msg: "Task update failed" });
-
-        // Generate logs for changes
-        const updateLogs = Object.keys(req.body)
-            .map((key) => {
-                let message = "";
-                if (key === "name") message = "You updated the name";
-                if (key === "description") message = "You updated the description";
-                if (key === "status") message = `You updated the status from ${taskExists.status} to ${req.body.status}`;
-                if (key === "category") message = `You updated the category from ${taskExists.category} to ${req.body.category}`;
-                if (key === "dueDate") message = "You updated the due date";
-                if (key === "attachment") message = "You uploaded a file";
-                return message ? { message, userId: req.userId, taskId: task._id, time: new Date() } : null;
-            })
-            .filter(Boolean);
-
-        if (updateLogs.length > 0) await Logs.insertMany(updateLogs);
-
-        res.status(200).json({ msg: "Task updated successfully", task });
-    } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Task update failed", error: e.msg });
-    }
-};
-
-//  Update multiple tasks
+// Update multiple tasks with Transactions
 export const updateTaskMultipleController = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { taskIds, status } = req.body;
         if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({ msg: "Invalid request format" });
         }
 
-        const existingTasks = await Task.find({ _id: { $in: taskIds } });
+        const existingTasks = await Task.find({ _id: { $in: taskIds } }).session(session);
+        if (!existingTasks.length) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ msg: "No tasks found to update" });
+        }
 
-        if (!existingTasks.length) return res.status(404).json({ msg: "No tasks found to update" });
+        const bulkOps = existingTasks.map(task => ({
+            updateOne: { filter: { _id: task._id }, update: { $set: { status } } }
+        }));
 
-        const bulkOps = [];
-        const updateLogs = [];
+        const updateLogs = existingTasks.map(task => ({
+            message: `You updated the status from ${task.status} to ${status}`,
+            userId: req.userId,
+            taskId: task._id,
+            time: new Date()
+        }));
 
-        taskIds.forEach((id) => {
-            const existingTask = existingTasks.find(t => t._id === id);
-            if (!existingTask) return;
+        await Task.bulkWrite(bulkOps, { session });
+        await Logs.insertMany(updateLogs, { session });
 
-            bulkOps.push({
-                updateOne: { filter: { _id: id }, update: { $set: { status } } },
-            });
-
-            Object.keys(taskData).forEach((key) => {
-
-                if (message) {
-                    updateLogs.push({ message: `You updated the status from ${existingTask.status} to ${status}`, userId: req.userId, taskId: id, time: new Date() });
-                }
-            });
-        });
-
-        if (bulkOps.length > 0) await Task.bulkWrite(bulkOps);
-        if (updateLogs.length > 0) await Logs.insertMany(updateLogs);
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(200).json({ msg: "Tasks updated successfully" });
     } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Tasks update failed", error: e.msg });
+        await session.abortTransaction();
+        session.endSession();
+        console.error(`Error: ${e}`);
+        res.status(500).json({ msg: "Tasks update failed", error: e.message });
     }
 };
 
-//  Delete a single task
-export const deleteTaskController = async (req, res) => {
-    try {
-        const task = await Task.findByIdAndDelete(req.params.id);
-        if (!task) return res.status(404).json({ msg: "Task not found" });
-
-        await Logs.create({ message: `You deleted the task: ${task.name}`, userId: req.userId, taskId: task._id, time: new Date() });
-
-        res.status(200).json({ msg: "Task deleted successfully" });
-    } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Task deletion failed", error: e.msg });
-    }
-};
-
-//  Delete multiple tasks
+// Delete multiple tasks with Transactions
 export const deleteTaskMultipleController = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { taskIds } = req.body;
         if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({ msg: "Invalid request format" });
         }
 
-        const tasksToDelete = await Task.find({ _id: { $in: taskIds } });
+        const tasksToDelete = await Task.find({ _id: { $in: taskIds } }).session(session);
+        if (!tasksToDelete.length) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ msg: "No tasks found to delete" });
+        }
 
-        if (!tasksToDelete.length) return res.status(404).json({ msg: "No tasks found to delete" });
-
-        await Task.deleteMany({ _id: { $in: taskIds } });
+        await Task.deleteMany({ _id: { $in: taskIds } }, { session });
 
         const deleteLogs = tasksToDelete.map(task => ({
-            message: `You deleted the task: ${task.name}`, userId: req.userId, taskId: task._id, time: new Date()
+            message: `You deleted the task: ${task.name}`,
+            userId: req.userId,
+            taskId: task._id,
+            time: new Date()
         }));
 
-        await Logs.insertMany(deleteLogs);
+        await Logs.insertMany(deleteLogs, { session });
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(200).json({ msg: "Tasks deleted successfully", deletedCount: tasksToDelete.length });
     } catch (e) {
-        console.log(`error: ${e}`)
-        res.status(500).json({ msg: "Tasks deletion failed", error: e.msg });
+        await session.abortTransaction();
+        session.endSession();
+        console.error(`Error: ${e}`);
+        res.status(500).json({ msg: "Tasks deletion failed", error: e.message });
     }
 };
