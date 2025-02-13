@@ -19,7 +19,6 @@ const Navbar = () => {
                 <div className="ms-auto">
                     <button className="btn btn-outline-dark ms-auto" onClick={handleLogout}>  <div className="overflow-auto" style={{ width: `${isMobile ? "100px" : ""}`, height: "20px" }}>Logout from {user?.name || "Guest"}</div></button>
                 </div>
-
             </div>
         </nav >
     );

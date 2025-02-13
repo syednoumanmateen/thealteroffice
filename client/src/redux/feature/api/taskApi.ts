@@ -11,10 +11,11 @@ export const taskApi = createApi({
     }),
     endpoints: (builder) => ({
         fetchAllTasks: builder.mutation({
-            query: () => ({
+            query: ({ search, dueDate, category }) => ({
                 url: "/",
-                method: "GET"
-            }),
+                method: "GET",
+                params: { search, dueDate, category },
+            })
         }),
         fetchTaskById: builder.mutation({
             query: (id: string) => ({

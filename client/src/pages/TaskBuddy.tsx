@@ -11,6 +11,7 @@ import { DatePicker, Dropdown, message } from 'antd'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { hideLoading, showLoading } from '../redux/feature/defaultSlice'
+import dayjs from 'dayjs'
 
 export interface listData {
   items: any[];
@@ -34,16 +35,26 @@ const TaskBuddy = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { reset } = useForm()
   const [items, setItems] = useState([])
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const fetchAllTask = async () => {
     try {
-      const { data, error }: any = await getAllTasks({});
+      const { data }: any = await getAllTasks({
+        search: searchQuery,
+        dueDate: selectedDate ? dayjs(selectedDate).format("YYYY-MM-DD") : "",
+        category: selectedCategory,
+      });
 
       if (data) {
-        message.success(data?.msg);
+        // message.success(data?.msg);
         setItems(data?.tasks)
+        setSearchQuery("")
+        setSelectedDate(null)
+        setSelectedCategory("")
       } else {
-        message.error(error?.data?.msg);
+        // message.error(error?.data?.msg);
       }
     } catch (err: any) {
       message.error(err.message);
@@ -112,64 +123,79 @@ const TaskBuddy = () => {
   return (
     <>
       <div className="container">
-        <div className={`d-flex justify-content-end ${isMobile ? "mb-3" : ""}`}>
-          <Button type="submit" className="" theme="theme" onClick={() => setIsModalOpen(true)}>Add Task</Button>
+        <div className={`d-flex justify-content-end mb-3`}>
+          <Button type="button" theme="theme" onClick={() => setIsModalOpen(true)}>+ Add Task</Button>
         </div>
-        <div className='row mb-3'>
-          <div className="col-6">
-            Filter by :
+
+        <div className="row align-items-center mb-3">
+          {/* Filters Section */}
+          <div className="col-md-8 d-flex align-items-center gap-2">
+            <span className="fw-bold">Filter:</span>
+
+            {/* Status Dropdown */}
             <Dropdown
               menu={{
                 items: [
                   { key: "Work", label: "Work" },
                   { key: "Personal", label: "Personal" }
-                ].map(({ key, label }) => ({
-                  key,
-                  label: <span onClick={() => { }}>{label}</span>,
-                })),
+                ],
+                onClick: ({ key }) => setSelectedCategory(key) // Set selected category
               }}
               placement="bottom"
               arrow
             >
-              <button className="btn btn-outline-theme rounded-5 me-2">Status</button>
+              <button className="btn btn-outline-theme rounded-5">
+                {selectedCategory ? selectedCategory : "Category"} {/* Display selected value */}
+              </button>
             </Dropdown>
+
+
+            {/* Due Date Picker */}
             <DatePicker
-              value={null} // Convert stored value to Dayjs
-              onChange={() => { }} // Convert Dayjs to ISO
+              value={selectedDate ? dayjs(selectedDate) : null}
+              onChange={(date: any) => setSelectedDate(date?.toISOString() || null)}
               className="btn btn-outline-theme rounded-5"
-              format="DD-MM-YYYY" // AntD format
-              placeholder="Select a due date"
+              format="DD-MM-YYYY"
+              placeholder="Select due date"
             />
+            {isMobile && <div className="col-md-1 p-0">
+              <Button type="button" theme="theme" onClick={() => fetchAllTask()}>Filter</Button>
+            </div>}
           </div>
-          <div className="col-6">
+
+          {/* Search Bar */}
+          <div className={`col-md-3 ${isMobile ? "mt-3" : "ms-auto"}`}>
             <input
               type="text"
-              onChange={() => { }}
-              className="btn btn-outline-theme rounded-5"
-              placeholder="Search"
+              className="form-control btn-outline-theme rounded-5"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
             />
           </div>
+          {!isMobile && <div className="col-md-1 p-0">
+            <Button type="button" theme="theme" onClick={() => fetchAllTask()}>Filter</Button>
+          </div>}
         </div>
-        <>
-          {!isMobile && <ul className="nav nav-underline mb-3 bg-white">
-            <li className="nav-item">
-              <div className={`${view === "list" ? "active" : ""}`} onClick={() => setView("list")}> <GiHamburgerMenu /> List</div>
-            </li>
-            <li className="nav-item">
-              <div className={`${view === "board" ? "active" : ""}`} onClick={() => setView("board")}><HiViewBoards /> Board</div>
-            </li>
-          </ul>
-          }
 
-          {view === "board" && <TaskBoardView items={items} setItems={setItems} handleEdit={handleEdit} handleDelete={handleDelete} handleCreate={handleCreate} />}
+        {!isMobile && <ul className="nav nav-underline mb-3 bg-white">
+          <li className="nav-item">
+            <div className={`${view === "list" ? "active" : ""}`} onClick={() => setView("list")}> <GiHamburgerMenu /> List</div>
+          </li>
+          <li className="nav-item">
+            <div className={`${view === "board" ? "active" : ""}`} onClick={() => setView("board")}><HiViewBoards /> Board</div>
+          </li>
+        </ul>
+        }
 
-          {view === "list" && <TaskListView items={items} setItems={setItems} handleEdit={handleEdit} handleDelete={handleDelete} handleCreate={handleCreate} />}
+        {view === "board" && <TaskBoardView items={items} setItems={setItems} handleEdit={handleEdit} handleDelete={handleDelete} handleCreate={handleCreate} />}
 
-          {!isMobile && <Model title="Add a new" width={1000} isMobile={isMobile} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} input="" />}
+        {view === "list" && <TaskListView items={items} setItems={setItems} handleEdit={handleEdit} handleDelete={handleDelete} handleCreate={handleCreate} />}
 
-          {isMobile && <Model title="Add a new" isMobile={isMobile} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} input="" />}
-        </>
-      </div>
+        {!isMobile && <Model title="Add a new" width={1000} isMobile={isMobile} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} input="" />}
+
+        {isMobile && <Model title="Add a new" isMobile={isMobile} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} input="" />}
+      </div >
     </>
   )
 }

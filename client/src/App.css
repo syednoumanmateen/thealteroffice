@@ -41,3 +41,7 @@
 .theme-color {
   color: var(--theme-color);
 }
+
+.ant-drawer .ant-drawer-body.card .card-body {
+  padding: 0px;
+}

@@ -8,26 +8,32 @@ import { useMultipleUploadMutation } from "../../redux/feature/api/uploadApi";
 import FileUpload from "../inputs/FileUpload";
 import Button from "../inputs/Button";
 import useScreenSize from "../../hooks/useScreenSize";
-import { useCreateTaskMutation, useFetchTaskByIdMutation } from "../../redux/feature/api/taskApi";
+import { useCreateTaskMutation, useFetchTaskByIdMutation, useUpdateTaskByIdMutation } from "../../redux/feature/api/taskApi";
 import { message } from "antd";
 import { memo, useEffect, useState } from "react";
 import { useFetchAllLogsMutation } from "../../redux/feature/api/logsApi";
 import dayjs from "dayjs";
 import { hideLoading, showLoading } from "../../redux/feature/defaultSlice";
+import { useDispatch } from "react-redux";
 
 const TaskForm = ({ closeModal, input }: any) => {
     const { register, handleSubmit, control, reset } = useForm();
     const isMobile = useScreenSize();
+    const dispatch = useDispatch()
+
     const [multipleUpload] = useMultipleUploadMutation();
     const [createTask] = useCreateTaskMutation()
+    const [updateTaskById] = useUpdateTaskByIdMutation()
     const [fetchAllLogs] = useFetchAllLogsMutation()
     const [fetchTaskById] = useFetchTaskByIdMutation()
 
     const [logs, setLogs] = useState([])
+    const [task, setTask] = useState<any>(null)
+    const [tabActive, setTabActive] = useState(true)
 
     const onFinish = async (input: any) => {
         try {
-          dispatch(showLoading());
+            dispatch(showLoading());
             let uploadres: any = {};
             if (input.attachments?.length) {
                 const formData = new FormData();
@@ -36,53 +42,55 @@ const TaskForm = ({ closeModal, input }: any) => {
                 uploadres = await multipleUpload(formData);
             }
 
-            const { data } = await createTask({ ...input, attachments: uploadres?.data?.imageIds })
-        dispatch(    hideLoading());
+            const { data } = input.id === "edit" ? await updateTaskById({ id: task?.key, updateData: { ...task, attachments: uploadres?.data?.imageIds } }) : await createTask({ ...input, attachments: uploadres?.data?.imageIds })
+            dispatch(hideLoading());
             if (data) {
                 message.success(data?.msg)
                 reset({})
                 closeModal(false)
             } else {
-                message.error("");
+                message.error("Creation failed");
             }
         } catch (e) {
-        dispatch(    hideLoading());
+            dispatch(hideLoading());
             console.error("Failed to create task", e);
         }
     };
 
-    const fetchAllLogData = async () => {
+    const fetchAllLogData = async (id: string) => {
         try {
-          dispatch(showLoading());
-            const { data, error }: any = await fetchAllLogs(input.key);
-        dispatch(    hideLoading());
+            const { data }: any = await fetchAllLogs(id);
 
             if (data) {
-                message.success(data?.msg);
+                // message.success(data?.msg);
                 setLogs(data?.logs)
             } else {
-                message.error(error?.data?.msg);
+                // message.error(error?.data?.msg);
             }
         } catch (e: any) {
-        dispatch(    hideLoading());
             message.error(e.message);
         }
     }
 
     const fetchTaskData = async () => {
         try {
-          dispatch(showLoading());
-            const { data, error }: any = await fetchTaskById(input.key);
-        dispatch(    hideLoading());
+            const { data }: any = await fetchTaskById(input.key);
 
             if (data) {
-                message.success(data?.msg);
-
+                // message.success(data?.msg);
+                reset({
+                    name: data.task.name,
+                    description: data.task.description,
+                    category: data.task.category,
+                    dueDate: data.task.dueDate ? dayjs(data.task.dueDate) : null,
+                    status: data.task.status
+                });
+                setTask(data.task)
+                fetchAllLogData(data.task._id)
             } else {
-                message.error(error?.data?.msg);
+                // message.error(error?.data?.msg);
             }
         } catch (err: any) {
-        dispatch(    hideLoading());
             message.error(err.message);
         }
     }
@@ -90,9 +98,8 @@ const TaskForm = ({ closeModal, input }: any) => {
     useEffect(() => {
         if (input.id === "edit") {
             fetchTaskData()
-            fetchAllLogData()
         }
-    }, [input])
+    }, [])
 
     const form = (<form className="row p-3" onSubmit={handleSubmit(onFinish, helper.errorHandle)}>
         {/* Name Field */}
@@ -194,28 +201,49 @@ const TaskForm = ({ closeModal, input }: any) => {
             <Button type="button" onClick={() => closeModal(false)} className="me-2 btn-outline-secondary">
                 Cancel
             </Button>
-            <Button type="submit" theme="theme" className="btn-primary">Submit</Button>
+            <Button type="submit" theme="theme" className="btn-primary">{input.id === "edit" ? "Update" : "Create"}</Button>
         </div>
     </form>)
 
+    const activityLogs = (<div className={`card shadow-sm bg-card rounded overflow-auto`} style={{ height: "60vh" }}>
+        <div className="card-header bg-white">Activity Logs</div>
+        <div className="card-body">
+            {logs && logs.length > 0 && logs?.map((log: any) => (
+                <div className="mb-3" key={log._id}>
+                    <span className="">{log.message}</span>
+                    <span className="float-end">{dayjs(log.time).format("DD-MM-YYYY")}</span>
+                </div>
+            ))}
+            {logs && logs.length <= 0 && <p className="text-center text-muted">No tasks available</p>}
+        </div>
+    </div>)
+
     return (
         <div className="row g-0">
-            <div className={`${input.id === "edit" ? "col-7" : "col-12"}`}>
-                {form}
+            <div className="col-12 mb-3">
+                {isMobile && input.id === "edit" && <div className="d-flex ">
+                    <Button className="w-50 me-1" type="button" theme={tabActive ? "dark" : ""} onClick={() => setTabActive(true)}>Details</Button>
+                    <Button className="w-50 ms-1" type="button" theme={!tabActive ? "dark" : ""} onClick={() => setTabActive(false)}>Activity</Button>
+                </div>}
             </div>
-            {input.id === "edit" && <div className="col-5">
-                <div className={`card shadow-sm bg-card rounded overflow-auto`} style={{ height: "60vh" }}>
-                    <div className="card-header bg-white">Activity Logs</div>
-                    <div className="card-body">
-                        {logs?.map((log: any) => (
-                            <div className="mb-3" key={log._id}>
-                                <span className="">{log.message}</span>
-                                <span className="float-end">{dayjs(log.time).format("DD-MM-YYYY")}</span>
-                            </div>
-                        ))}
+            {
+                isMobile ? <>
+                    {tabActive && <div className={`col-12`}>
+                        {form}
+                    </div>}
+                    {!tabActive && <div className={`col-12`}>
+                        {activityLogs}
+                    </div>}
+                </> : <>
+                    <div className={`${(input.id === "edit") ? "col-7" : "col-12"}`}>
+                        {form}
                     </div>
-                </div>
-            </div>}
+                    {input.id === "edit" && <div className="col-5">
+                        {activityLogs}
+                    </div>}
+                </>
+            }
+
         </div>
     );
 };

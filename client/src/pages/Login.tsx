@@ -41,7 +41,7 @@ const Login: React.FC = () => {
         message.error(error?.data?.msg || "Invalid credentials");
       }
     } catch (e: any) {
-      console.log("🚀 ~ constonFinish:SubmitHandler<LoginFormInputs>=useCallback ~ e:", e)
+      console.log("🚀 ~ login~ e:", e)
       dispatch(hideLoading());
       message.error(e?.message || "An unexpected error occurred");
     }

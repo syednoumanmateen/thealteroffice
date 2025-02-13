@@ -198,7 +198,7 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
                 <div
                   onDragOver={handleDragOver}
                   onDrop={() => handleDrop(status.label)}
-                  className={`border border-dashed p-3 text-center ${filteredTasks.length === 0 ? "bg-light text-muted" : ""
+                  className={`border border-dashed text-center ${filteredTasks.length === 0 ? "bg-light text-muted" : ""
                     }`}
                   style={{ minHeight: "50px" }} // Ensures there's a space to drop tasks
                 >
@@ -241,11 +241,11 @@ const TaskListView: FC<listData> = ({ items, setItems, handleEdit, handleDelete,
                                   </select>
                                 </td>
                                 <td className="col-2">{task.category}</td>
-                                <td className="col-1">
-                                  <DropDownFromList _id={task._id} data={task} handleEdit={() => setIsModalOpen({ value: true, key: task._id })} handleDelete={handleDelete} />
-                                </td>
                               </>
                             )}
+                            <td className="col-1">
+                              <DropDownFromList _id={task._id} data={task} handleEdit={() => setIsModalOpen({ value: true, key: task._id })} handleDelete={handleDelete} />
+                            </td>
                           </tr>
                         ))}
                       </tbody>

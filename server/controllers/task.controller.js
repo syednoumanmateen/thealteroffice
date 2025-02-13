@@ -19,7 +19,24 @@ export const createTaskController = async (req, res) => {
 //  Get all tasks
 export const getAllTasksController = async (req, res) => {
     try {
-        const tasks = await Task.find({});
+        const { search, dueDate, category } = req.query;
+        let filter = {};
+
+        // Search by task name (case-insensitive)
+        if (search) {
+            filter.name = new RegExp(search, "i");
+        }
+
+        // Filter by exact due date (if provided)
+        if (dueDate) {
+            filter.dueDate = { $gte: new Date(dueDate).setHours(0, 0, 0, 0), $lt: new Date(dueDate).setHours(23, 59, 59, 999) };
+        }
+
+        // Filter by category (if provided)
+        if (category) {
+            filter.category = category;
+        }
+        const tasks = await Task.find(filter);
         res.status(200).json({ msg: "Task fetched successfully", tasks });
     } catch (e) {
         console.log(`error: ${e}`)

@@ -40,7 +40,7 @@ const Register: React.FC = () => {
           message.error(error?.data?.msg || "Registration failed");
         }
       } catch (e: any) {
-        console.log("🚀 ~ e:", e)
+        console.log("🚀 ~register~ e:", e)
         dispatch(hideLoading());
         message.error(e?.message || "An unexpected error occurred");
       }
