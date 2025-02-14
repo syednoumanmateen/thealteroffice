@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    base: isDev ? '/' : env.VITE_APP_BE_HOST_LOCAL || '/',
+    base: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST,
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
     },
