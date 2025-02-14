@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // Backend API
+        target: "https://taskbuddy-65qv.onrender.com", // Backend API
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1'), // Ensures the correct path

@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import useScreenSize from "../../hooks/useScreenSize";
 import Model from "../Model";
 
-const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete, handleCreate }) => {
+const TaskBoardView: FC<listData> = ({ items, setItems, handleEdit, handleDelete }) => {
   const isMobile = useScreenSize();
   const [draggedTask, setDraggedTask] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState({ value: false, key: 0 });
