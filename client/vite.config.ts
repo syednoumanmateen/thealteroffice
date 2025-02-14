@@ -5,6 +5,7 @@ import process from 'process';
 export default defineConfig(({ mode }) => {
   // Load environment variables based on the current mode
   const env = loadEnv(mode, process.cwd(), '');
+  const isDev = env.VITE_APP_MODE === "development";
 
   return {
     plugins: [react()],
@@ -14,12 +15,16 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_APP_MODE === "development" ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST, // Use environment variable
+          target: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST, // Use environment variable
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
         },
       },
+    },
+    base: isDev ? '/' : env.VITE_APP_BE_HOST_LOCAL || '/',
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(mode),
     },
   };
 });
