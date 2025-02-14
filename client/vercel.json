@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://your-backend-url.com/api/v1/:path*"
+      "destination": "@VITE_APP_BE_HOST/api/v1/:path*"
     }
   ],
   "redirects": [
