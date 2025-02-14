@@ -1,14 +1,13 @@
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../redux/store";
-import { logout } from "../redux/feature/authSlice";
-import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../redux/feature/authSlice";
 
 const useAuth = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const token = useSelector((state: RootState) => state.auth.token);
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         if (token) {
@@ -19,13 +18,10 @@ const useAuth = () => {
                     dispatch(logout());
                     navigate("/auth/login"); // Redirect to login page
                 }
-            } catch (e:any) {
-                console.log("🚀 ~ useEffect ~ e:", e)
+            } catch (e: any) {
                 dispatch(logout());
                 navigate("/auth/login"); // Redirect to login page
             }
-        } else {
-            navigate("/auth/login"); // If no token, force login
         }
     }, [token, navigate, dispatch]);
 };

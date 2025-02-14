@@ -23,6 +23,7 @@ const PublicLayout = () => {
     
     useAuth(); // Check token validity
     const token = useSelector((state: any) => state.auth.token);
+    console.log("🚀 ~ PublicLayout ~ token:", token)
 
     const location = useLocation();
     const pageTitle = location.pathname.split("/").pop()?.replace(/^\w/, (c) => c.toUpperCase()) || "Home";

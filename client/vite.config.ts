@@ -5,10 +5,11 @@ import process from 'process';
 export default defineConfig(({ mode }) => {
   // Load environment variables based on the current mode
   const env = loadEnv(mode, process.cwd(), '');
+  console.log("🚀 ~ defineConfig ~ env:", env.VITE_APP_BE_HOST)
 
   return {
     plugins: [react()],
-    base: '/',
+    port:5173,
     server: {
       proxy: {
         '/api': {

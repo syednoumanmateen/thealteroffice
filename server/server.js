@@ -15,7 +15,7 @@ connectDB();
 // Middleware
 app.use(express.json());
 const FEURL = process.env.NODE_MODE === "development" ? process.env.FRONTEND_URL_LOCAL_HOST : process.env.FRONTEND_URL
-app.use(cors({ origin: [], credentials: true }))
+app.use(cors({ origin: [FEURL], credentials: true }))
 
 // Routes
 app.use("/api/v1/auth", authRoutes);

@@ -5,6 +5,7 @@ import { useGoogleLoginMutation } from "../redux/feature/api/authApi";
 import { setCredentials } from "../redux/feature/authSlice";
 import { message } from "antd";
 import { FC, useCallback } from "react";
+import { hideLoading, showLoading } from "../redux/feature/defaultSlice";
 
 const GoogleLoginButton: FC = () => {
     const dispatch = useDispatch();
@@ -14,7 +15,9 @@ const GoogleLoginButton: FC = () => {
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async ({ access_token }: { access_token: string }) => {
             try {
+                dispatch(showLoading())
                 const { data, error }: any = await googleLogin(access_token);
+                dispatch(hideLoading())
                 if (data) {
                     message.success(data.msg);
                     dispatch(setCredentials(data));
@@ -23,6 +26,7 @@ const GoogleLoginButton: FC = () => {
                     throw new Error(error?.msg || "Google login failed");
                 }
             } catch (e: any) {
+                dispatch(hideLoading())
                 console.log("🚀 ~ onSuccess: ~ e:", e)
                 message.error(e?.message);
             }
