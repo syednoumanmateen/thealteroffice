@@ -5,7 +5,7 @@ import process from 'process';
 export default defineConfig(({ mode }) => {
   // Load environment variables based on the current mode
   const env = loadEnv(mode, process.cwd(), '');
-
+console.log(env.VITE_APP_BE_HOST)
   return {
     plugins: [react()],
     build: {
@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_APP_BE_HOST, // Local API host for development
+          target: env.VITE_APP_MODE==="development"?env.VITE_APP_BE_HOST_LOCAL:env.VITE_APP_BE_HOST, // Local API host for development
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
