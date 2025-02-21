@@ -5,7 +5,7 @@ import process from 'process';
 export default defineConfig(({ mode }) => {
   // Load environment variables based on the current mode
   const env = loadEnv(mode, process.cwd(), '');
-  const isDev = env.VITE_APP_MODE === "development";
+  const isDev = env.VITE_APP_MODE === 'development';
 
   return {
     plugins: [react()],
@@ -14,14 +14,16 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000, // Increased chunk size warning limit
     },
     server: {
-      proxy: {
-        '/api': {
-          target: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST, // Use environment variable
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
-        },
-      },
+      proxy: isDev
+        ? {
+            '/api': {
+              target: env.VITE_APP_BE_HOST_LOCAL, // Local API host for development
+              changeOrigin: true,
+              secure: false,
+              rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
+            },
+          }
+        : {}, // Disable proxy in production
     },
     base: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST, // Set base URL based on mode
     define: {
