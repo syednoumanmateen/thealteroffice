@@ -25,5 +25,5 @@ app.use("/api/v1/logs", logsRoutes)
 // Start Server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on host ${VITE_APP_BE_HOST}`);
 });
