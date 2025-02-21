@@ -10,7 +10,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     build: {
-      outDir: 'dist'
+      outDir: 'dist',
+      chunkSizeWarningLimit: 1000
     },
     server: {
       proxy: {
