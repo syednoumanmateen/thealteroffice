@@ -14,7 +14,12 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: process.env.NODE_MODE==="development"?process.env.FRONTEND_URL_LOCAL:process.env.FRONTEND_URL, credentials: true }))
+app.use(cors({
+  origin: process.env.NODE_MODE === "development" ? process.env.FRONTEND_URL_LOCAL : process.env.FRONTEND_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow only these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers,
+  credentials: true
+}))
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
@@ -25,5 +30,5 @@ app.use("/api/v1/logs", logsRoutes)
 // Start Server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-    console.log(`Server running on host ${process.env.NODE_MODE}`);
+  console.log(`Server running on host ${process.env.NODE_MODE}`);
 });
