@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     build: {
       outDir: 'dist',
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1000, // Increased chunk size warning limit
     },
     server: {
       proxy: {
@@ -23,9 +23,9 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    base: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST,
+    base: isDev ? env.VITE_APP_BE_HOST_LOCAL : env.VITE_APP_BE_HOST, // Set base URL based on mode
     define: {
-      'process.env.NODE_ENV': JSON.stringify(mode),
+      'process.env.NODE_ENV': JSON.stringify(mode), // For React compatibility
     },
   };
 });
