@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const uploadSchema = new mongoose.Schema({
     upload: {
         data: Buffer,
-        contentType: String
+        contentType:String
     }
 }, {
     timestamps: true,

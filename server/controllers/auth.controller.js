@@ -55,6 +55,8 @@ export const loginController = async (req, res) => {
 
         // Find user
         const user = await User.findOne({ email }).session(session);
+        const userPassword = await User.findOne({ email }).select("+password")
+
         if (!user) {
             await session.abortTransaction();
             session.endSession();
@@ -62,7 +64,7 @@ export const loginController = async (req, res) => {
         }
 
         // Compare passwords
-        const isMatch = await comparePassword(password, user.password);
+        const isMatch = await comparePassword(password, userPassword.password);
         if (!isMatch) {
             await session.abortTransaction();
             session.endSession();

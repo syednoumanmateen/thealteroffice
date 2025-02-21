@@ -1,6 +1,7 @@
 git clone <git repo>
 cd ../client && npm i && npm run dev
-cd ../server && npm i && npm run server
+cd ../server && npm i && npm run server //for production
+cd ../server && npm i && npm run local //development
 
 if want to login via google-oAuth /auth/login
 if want to login manually /auth/login cick register

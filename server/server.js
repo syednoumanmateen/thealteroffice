@@ -14,11 +14,8 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-const FEURL = process.env.NODE_MODE === "development" ? process.env.FRONTEND_URL_LOCAL_HOST : process.env.FRONTEND_URL
-app.use(cors({
-  origin: FEURL, // or use '*' for all origins (less secure)
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adjust as needed
-}));
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
+
 // Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/upload", uploadRoutes);
