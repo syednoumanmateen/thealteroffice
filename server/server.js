@@ -15,7 +15,7 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: process.env.NODE_MODE === "development" ? process.env.FRONTEND_URL_LOCAL : process.env.FRONTEND_URL,
+  origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_LOCAL],
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow only these HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers,
   credentials: true
