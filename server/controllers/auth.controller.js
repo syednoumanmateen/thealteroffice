@@ -88,6 +88,7 @@ export const loginController = async (req, res) => {
 
 // Google OAuth Login with Transactions
 export const googleLoginController = async (req, res) => {
+    console.log("local")
     const session = await mongoose.startSession();
     session.startTransaction();
 

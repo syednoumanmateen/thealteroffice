@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --env-file=.env server.js",
     "local": "nodemon --env-file=.env server.js",
-    "server": "nodemon --env-file=.env.production server.js"
+    "server": "nodemon --env-file=.env server.js"
   },
   "keywords": [],
   "author": "",
