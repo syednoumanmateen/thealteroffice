@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "@VITE_APP_BE_HOST/api/v1/:path*"
+      "destination": "https://taskbuddy-65qv.onrender.com/api/v1/:path*"
     }
   ],
   "redirects": [
