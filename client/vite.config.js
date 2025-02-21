@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
         },
       }
     },
-    base: env.VITE_APP_BE_HOST, // Set base URL based on mode
+    base: "/", // Set base URL based on mode
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode), // For React compatibility
     },
