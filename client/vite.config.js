@@ -8,10 +8,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    build: {
-      outDir: 'dist',
-      chunkSizeWarningLimit: 1000, // Increased chunk size warning limit
-    },
     server: {
       proxy: {
         '/api': {
@@ -21,6 +17,10 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
         },
       }
+    },
+    build: {
+      outDir: 'dist',
+      chunkSizeWarningLimit: 1000, // Increased chunk size warning limit
     },
     base: "/", // Set base URL based on mode
     define: {
